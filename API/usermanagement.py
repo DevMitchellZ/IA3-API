@@ -20,10 +20,12 @@ class usermanagement():
 
         self.firebase=pyrebase.initialize_app(self.firebaseConfig)
         self.auth=self.firebase.auth()
+        self.db=self.firebase.database()
 
     def firebase_login(self, email_address, unhashed_password):
         print("Logging In...")
         try:
+            hashed_password=str(hashlib.md5(unhashed_password).encode()).hexdigest()
             firebase_login=self.auth.sign_in_with_email_and_password(email_address, hashed_password)
             # Debug
             print("Successfully Logged In! ")
@@ -41,7 +43,7 @@ class usermanagement():
                 "token" : self.token
             }
             jobject=json.dumps(identity, ident=4)
-            with open("identity.json", "w") as outfile:
+            with open("API/identity.json", "w") as outfile:
                 outfile.write(jobject)
         except:
             # Debug
@@ -51,7 +53,7 @@ class usermanagement():
     def firebase_register(self, email_address, unhashed_password):
         print("Registering... ")
         try:
-            hashed_password=
+            hashed_password=str(hashlib.md5(unhashed_password).encode()).hexdigest()
             firebase_register=self.auth.create_user_with_email_and_password(email_address, hashed_password)
         except:
             # Debug
@@ -59,5 +61,25 @@ class usermanagement():
             return
         return
 
+    def write_db(self, child, data):
+        try:
+            with open("API/identity.json") as infile:
+                jobject=json.load(infile)
+            # To Load UUID, | jobject["uuid"] | jobject["token"]
+            commit=self.db.child(jobject["uuid"]).child(child).set(data, jobject["token"])
+            commit()
+        except:
+            return
+
+    def read_db(self, child):
+        try:
+            with open("API/identity.json") as infile:
+                jobject=json.load(infile)
+            # To Load UUID, | jobject["uuid"] | jobject["token"]
+            retrive=self.db.child(jobject["uuid"]).child(child).get(jobject["token"])
+            print(retrive.val())
+            return retrive.val()
+        except:
+            return
 
 
